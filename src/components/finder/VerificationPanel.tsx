@@ -3,7 +3,7 @@
 import { indianStates } from "@/data/states-in";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
-import { fill, formatClock, formatDate, tithiLabel } from "@/lib/finder-format";
+import { fill, formatClock, formatDate, respectfulName, tithiLabel } from "@/lib/finder-format";
 import type { FinderState } from "@/lib/finder-state";
 import { PrintButton } from "./PrintButton";
 import type { ContactInfo } from "./ResultView";
@@ -18,7 +18,7 @@ export function verificationMessage(state: Done, locale: Locale, fd: Dictionary[
   const lines = [
     fd.verify.messageIntro,
     `${r.reference}: ${state.reference}`,
-    `${r.rows.departed}: ${s.name || "—"}`,
+    `${r.rows.departed}: ${respectfulName(s.name, locale) || "—"}`,
     `${r.rows.deathDate}: ${formatDate(s.deathDate, locale, false)}`,
     `${r.rows.deathTime}: ${s.deathTime ? formatClock(s.deathTime, locale) : r.unknown}`,
     `${r.rows.deathPlace}: ${place(s.deathPlace)}`,

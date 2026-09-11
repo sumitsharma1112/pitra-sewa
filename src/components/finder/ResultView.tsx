@@ -5,7 +5,7 @@ import type { Ref } from "react";
 import { indianStates } from "@/data/states-in";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
-import { fill, formatClock, formatDate, formatTime, monthLabel, tithiLabel } from "@/lib/finder-format";
+import { fill, formatClock, formatDate, formatTime, monthLabel, respectfulName, tithiLabel } from "@/lib/finder-format";
 import type { FinderState } from "@/lib/finder-state";
 import type { ShraddhaResult } from "@/services/panchang/types";
 import { PrintButton } from "./PrintButton";
@@ -47,7 +47,7 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
   const month = result?.death.month;
 
   const inputRows: [string, string][] = [
-    [r.rows.departed, summary.name || "—"],
+    [r.rows.departed, respectfulName(summary.name, locale) || "—"],
     [r.rows.deathDate, formatDate(summary.deathDate, locale)],
     [r.rows.deathTime, summary.deathTime ? formatClock(summary.deathTime, locale) : r.unknown],
     [r.rows.deathPlace, place(summary.deathPlace)],
@@ -118,7 +118,9 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
       <article className="overflow-hidden rounded-2xl border border-line bg-paper shadow-[0_24px_48px_-32px_rgba(74,22,32,0.45)] print:shadow-none">
         <header className="flex flex-wrap items-center justify-between gap-2 bg-maroon px-6 py-4 text-ivory print:border-b print:border-line print:bg-white print:text-maroon">
           <span className="font-display text-xl">
-            {summary.name ? fill(r.cardTitleNamed, { name: summary.name }) : r.cardTitle}
+            {respectfulName(summary.name, locale)
+              ? fill(r.cardTitleNamed, { name: respectfulName(summary.name, locale, true) })
+              : r.cardTitle}
           </span>
           <span className="text-sm text-gold-light print:text-muted">
             {r.reference}: {state.reference}

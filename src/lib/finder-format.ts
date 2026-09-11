@@ -60,3 +60,24 @@ export function formatTime(instant: Date | string, locale: Locale): string {
 
 export const fill = (template: string, values: Record<string, string | number>) =>
   template.replace(/\{(\w+)\}/g, (_, k) => String(values[k] ?? ""));
+
+/** Honorifics people often type themselves; removed so they are never doubled. */
+const PREFIX = /^(?:स्व\.\s*|स्व\s+|स्वर्गीया?\s+|दिवंगत\s+|(?:the\s+)?late\.?\s+|lt\.\s*|swargiya\s+|sw\.\s*)/i;
+const SUFFIX = /\s+(?:जी|ji)\.?$/i;
+
+export function plainName(raw: string): string {
+  let name = raw.trim().replace(/\s+/g, " ");
+  for (let i = 0; i < 3 && PREFIX.test(name); i++) name = name.replace(PREFIX, "");
+  return name.replace(SUFFIX, "").trim();
+}
+
+/**
+ * The departed person's name with respect: "स्व. राम प्रसाद जी" in Hindi;
+ * "Late Ram Prasad" (or "the late Ram Prasad" mid-sentence) in English.
+ */
+export function respectfulName(raw: string | undefined, locale: Locale, inline = false): string {
+  const name = raw ? plainName(raw) : "";
+  if (!name) return "";
+  if (locale === "hi") return `स्व. ${name} जी`;
+  return `${inline ? "the late" : "Late"} ${name}`;
+}

@@ -233,15 +233,15 @@
     "privacy": "Your details are used only for this calculation and are not stored by us.",
     "preliminary": "The Panchang calculation is under review. For now, treat every result as final only after a priest confirms it.",
     "sections": {
-      "departed": "About your loved one",
+      "departed": "About your departed loved one",
       "shraddha": "About the Shraddha",
       "family": "Family tradition"
     },
     "fields": {
       "name": {
-        "label": "Departed person’s name",
-        "alt": "प्रियजन का नाम",
-        "hint": "Optional"
+        "label": "Name of the departed",
+        "alt": "दिवंगत प्रियजन का नाम",
+        "hint": "Optional — just the name. “Late” is added respectfully on the slip."
       },
       "deathDate": {
         "label": "Date of death",
@@ -318,7 +318,7 @@
       "selected": "Selected"
     },
     "result": {
-      "heading": "Your loved one’s Shraddha date",
+      "heading": "Shraddha date of your departed loved one",
       "statusCalculated": "Calculated from the Panchang",
       "statusVerify": "Priest confirmation needed",
       "serviceErrorTitle": "The Panchang service did not respond",
@@ -328,7 +328,7 @@
       "inputsTitle": "Details you entered",
       "calcTitle": "Panchang calculation",
       "rows": {
-        "departed": "Loved one",
+        "departed": "Departed loved one",
         "deathDate": "Date of death",
         "deathTime": "Time of death",
         "deathPlace": "Place of death",
