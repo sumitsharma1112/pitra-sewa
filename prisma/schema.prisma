@@ -1,0 +1,287 @@
+// Pitra Sewa — DRAFT database schema (Stage 4). Not wired into the app yet.
+// Validated with Prisma 7.10. In Prisma 7 the connection URL lives in
+// prisma.config.ts (read from DATABASE_URL), not in this file.
+// Money is stored as integer paise to avoid floating-point errors.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────── Admin ───────────────────────────
+
+enum AdminRole {
+  OWNER // everything, including managing other admins
+  ADMIN // content, prices, conventions, bookings
+  COORDINATOR // bookings and contact messages only
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String // argon2id; plain passwords are never stored
+  role         AdminRole @default(COORDINATOR)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  bookingEvents BookingEvent[]
+  verifications ShraddhaCalculation[] @relation("VerifiedBy")
+}
+
+// ─────────────────────────── Bookings ───────────────────────────
+
+enum BookingStatus {
+  PENDING // default on submission — shown to families as "Pending confirmation"
+  CONTACTED
+  CONFIRMED // only an admin action can set this
+  COMPLETED
+  CANCELLED
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  reference String        @unique // human-friendly, e.g. PS-26-7K3Q9 (no guessable sequence)
+  status    BookingStatus @default(PENDING)
+
+  // Family contact
+  customerName  String
+  customerPhone String
+  customerEmail String?
+
+  // Departed loved one — only what the Sewa needs
+  departedName  String
+  relationship  String?
+  dateOfDeath   DateTime? @db.Date
+  shraddhaTithi String? // as entered or copied from a calculation
+
+  // Request
+  preferredDate      DateTime @db.Date
+  city               String
+  brahminCount       Int?
+  foodPreferences    String?
+  familyInstructions String?
+  message            String?
+
+  sewaOptionId      String
+  sewaOption        SewaOption           @relation(fields: [sewaOptionId], references: [id])
+  serviceLocationId String?
+  serviceLocation   ServiceLocation?     @relation(fields: [serviceLocationId], references: [id])
+  calculationId     String?
+  calculation       ShraddhaCalculation? @relation(fields: [calculationId], references: [id])
+
+  quotedPricePaise Int? // price snapshot at request time; later price edits don't change it
+  adminNotes       String? // never shown to the family
+  consentAt        DateTime // privacy-policy consent timestamp
+  confirmedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  events BookingEvent[]
+
+  @@index([status, preferredDate])
+  @@index([createdAt])
+}
+
+/// Audit trail: every status change records who made it and why.
+model BookingEvent {
+  id         String         @id @default(cuid())
+  bookingId  String
+  booking    Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  note       String?
+  adminId    String?
+  admin      AdminUser?     @relation(fields: [adminId], references: [id])
+  createdAt  DateTime       @default(now())
+
+  @@index([bookingId, createdAt])
+}
+
+// ─────────────────────────── Catalogue ───────────────────────────
+
+model SewaOption {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  nameHi             String
+  nameEn             String
+  descriptionHi      String
+  descriptionEn      String
+  includesHi         String[]
+  includesEn         String[]
+  startingPricePaise Int? // null → "price on request"
+  imageUrl           String?
+  imageAltHi         String?
+  imageAltEn         String?
+  isDemo             Boolean  @default(true) // demo rows are labelled on the site
+  isActive           Boolean  @default(false)
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  locations ServiceLocation[]
+  bookings  Booking[]
+}
+
+model ServiceLocation {
+  id        String   @id @default(cuid())
+  city      String
+  state     String
+  cityHi    String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sewaOptions SewaOption[]
+  bookings    Booking[]
+
+  @@unique([city, state])
+}
+
+// ─────────────────────────── Shraddha date engine ───────────────────────────
+
+enum MonthSystem {
+  PURNIMANTA
+  AMANTA
+}
+
+enum ShraddhaKind {
+  PITRU_PAKSHA // same Tithi within Pitru Paksha
+  VARSHIK // same Tithi in the same lunar month (annual)
+}
+
+enum CalculationStatus {
+  CALCULATED
+  NEEDS_VERIFICATION // edge case detected — family is told to confirm with a priest
+  UNSUPPORTED
+  FAILED
+}
+
+enum VerificationStatus {
+  NOT_REQUESTED
+  REQUESTED
+  VERIFIED
+  CORRECTED
+}
+
+model CalendarConvention {
+  id             String      @id // e.g. "north-purnimanta-lahiri-v1"
+  nameHi         String
+  nameEn         String
+  monthSystem    MonthSystem
+  ayanamsha      String // "lahiri"
+  observanceRule String // "aparahna-vyapini"
+  rulesVersion   String // version of the Acharya-reviewed rule document
+  isActive       Boolean     @default(false)
+  isDefault      Boolean     @default(false)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  calculations ShraddhaCalculation[]
+}
+
+/// One row per calculation, so every date shown to a family can be traced
+/// to its inputs, engine version and rule version. The departed person's
+/// name is NOT stored here (it is only printed on the result page).
+model ShraddhaCalculation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Inputs
+  kind               ShraddhaKind
+  deathDateLocal     String // yyyy-mm-dd as entered
+  deathTimeLocal     String? // HH:mm, null if unknown
+  deathPlaceLabel    String
+  deathLat           Float
+  deathLng           Float
+  deathTimeZone      String // IANA, e.g. Asia/Kolkata
+  targetYear         Int
+  observancePlace    String
+  observanceLat      Float
+  observanceLng      Float
+  observanceTimeZone String
+  conventionId       String
+  convention         CalendarConvention @relation(fields: [conventionId], references: [id])
+
+  // Outputs
+  status         CalculationStatus
+  tithiIndex     Int? // 1–30
+  lunarMonth     String?
+  isAdhikMaas    Boolean?
+  observanceDate DateTime?         @db.Date
+  notes          String[] // plain-language reasons for NEEDS_VERIFICATION etc.
+  engineName     String
+  engineVersion  String
+  rulesVersion   String
+
+  // Priest verification workflow
+  verification     VerificationStatus @default(NOT_REQUESTED)
+  verifiedById     String?
+  verifiedBy       AdminUser?         @relation("VerifiedBy", fields: [verifiedById], references: [id])
+  verifiedAt       DateTime?
+  verificationNote String?
+
+  bookings Booking[]
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+// ─────────────────────────── Content & settings ───────────────────────────
+
+enum MessageStatus {
+  NEW
+  REPLIED
+  ARCHIVED
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  message   String
+  status    MessageStatus @default(NEW)
+  createdAt DateTime      @default(now())
+}
+
+model Faq {
+  id          String   @id @default(cuid())
+  questionHi  String
+  questionEn  String
+  answerHi    String
+  answerEn    String
+  category    String?
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentPage {
+  id              String   @id @default(cuid())
+  slug            String
+  locale          String // "hi" | "en"
+  title           String
+  body            String // Markdown
+  metaTitle       String?
+  metaDescription String?
+  isPublished     Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([slug, locale])
+}
+
+/// Admin-editable key/value settings: contact phone, email, WhatsApp, address…
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

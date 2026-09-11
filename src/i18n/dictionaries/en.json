@@ -1,0 +1,228 @@
+{
+  "meta": {
+    "siteName": "Pitra Sewa | पितृ सेवा",
+    "title": "Pitra Sewa — Shraddha Date Finder and Brahmin Sewa",
+    "description": "Find your loved one’s annual Shraddha Tithi, understand Pitra Paksha and the meaning of Shraddha, and arrange Brahmin Bhojan and Sewa with care and respect."
+  },
+  "a11y": {
+    "skip": "Skip to main content",
+    "mainNav": "Main menu",
+    "footerNav": "Footer links",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "languageNav": "Choose language",
+    "homeLink": "Pitra Sewa — Home",
+    "quickActions": "Quick actions"
+  },
+  "brand": {
+    "name": "पितृ सेवा",
+    "latinName": "Pitra Sewa",
+    "tagline": "उनकी स्मृति में, श्रद्धा के साथ।",
+    "taglineAlt": "परंपरा वही, तरीका नया।"
+  },
+  "nav": {
+    "home": "Home",
+    "dateFinder": "Shraddha Date Finder",
+    "whatIsShraddha": "What is Shraddha?",
+    "brahminSewa": "Brahmin Sewa",
+    "sewaOptions": "Sewa Options",
+    "faqs": "FAQs",
+    "contact": "Contact",
+    "bookSewa": "Book Sewa",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "disclaimer": "Disclaimer"
+  },
+  "cta": {
+    "findTithi": "Find Shraddha Date",
+    "bookSewa": "Book Brahmin Sewa",
+    "learnShraddha": "Learn about Shraddha",
+    "findTithiShort": "Find date",
+    "bookSewaShort": "Book Sewa",
+    "headerFindTithi": "Find Tithi"
+  },
+  "hero": {
+    "subtitleEn": "Remember your loved ones. Honour their memory. Continue the tradition of Shraddha.",
+    "lead": "During Pitra Paksha, remember the people you have lost and carry forward the spirit of reverence and service that Sanatan tradition asks of us.",
+    "body": "Discover the meaning of Shraddha, find your loved one’s annual Shraddha Tithi, and arrange Brahmin Sewa with care and respect.",
+    "trustNote": "The same tradition, a new way."
+  },
+  "why": {
+    "heading": "Why Shraddha Matters",
+    "intro": "Shraddha is the tradition of remembering departed loved ones and ancestors with respect. It is an occasion for remembrance and gratitude, not for fear or grief.",
+    "whatTitle": "What is Shraddha?",
+    "whatBody": "The word Shraddha is connected to श्रद्धा, reverence. Families offer water, food and service in memory of those who have passed. In many families this includes Tarpan, Pind Daan, Brahmin Bhojan and giving to others.",
+    "pakshaTitle": "What is Pitra Paksha?",
+    "pakshaBody": "Pitra Paksha is the waning-moon fortnight that follows Bhadrapada Purnima and ends on Sarva Pitru Amavasya. Purnimanta calendars place it in the month of Ashwin; Amanta calendars place it in Bhadrapada. It usually falls in September–October.",
+    "valuesTitle": "Four feelings at the heart of it",
+    "values": [
+      {
+        "term": "श्रद्धा",
+        "label": "Reverence",
+        "meaning": "The respect in one’s heart with which the rite is performed."
+      },
+      {
+        "term": "स्मरण",
+        "label": "Remembrance",
+        "meaning": "Recalling the lives, the affection and the lessons of our loved ones."
+      },
+      {
+        "term": "कृतज्ञता",
+        "label": "Gratitude",
+        "meaning": "Thankfulness for the values, family and life our ancestors gave us."
+      },
+      {
+        "term": "सेवा",
+        "label": "Service",
+        "meaning": "Offering food, charity or help to someone in need, in their memory."
+      }
+    ],
+    "bhojanTitle": "The tradition of Brahmin Bhojan",
+    "bhojanBody": "Traditionally, a sattvic meal is cooked at home on the day of Shraddha, and a Brahmin is fed with respect and offered dakshina. Many families also set aside a portion of food for cows, crows, dogs and ants.",
+    "todayTitle": "Why families still keep it",
+    "todayBody": "It connects generations. Families sit together and remember grandparents and parents, and children learn the names and stories of those who came before them.",
+    "note": "Shraddha rituals and dates differ between families, regions and traditions. Please seek guidance from your family priest or a qualified Acharya."
+  },
+  "tradition": {
+    "heading": "परंपरा वही, तरीका नया।",
+    "headingNote": "The tradition stays the same. The way we keep it has changed.",
+    "earlierTitle": "Earlier",
+    "earlierBody": "On the day of Shraddha, families invited a Brahmin home, cooked with love, and offered the meal in memory of their departed loved ones.",
+    "todayTitle": "Today",
+    "todayItems": [
+      "Family members often live far from home, in different cities.",
+      "Busy schedules leave little time to prepare.",
+      "Many people do not know their loved one’s correct Shraddha Tithi.",
+      "It is unclear whom to contact for Brahmin Sewa.",
+      "Yet everyone wants the Sewa done with respect and in the right way."
+    ],
+    "closing": "Pitra Sewa helps make this whole process simpler.",
+    "stepsTitle": "Three simple steps",
+    "steps": [
+      {
+        "num": "1",
+        "title": "स्मरण करें",
+        "gloss": "Remember",
+        "body": "Enter your loved one’s name and the date, time and place of their passing."
+      },
+      {
+        "num": "2",
+        "title": "तिथि जानें",
+        "gloss": "Find the Tithi",
+        "body": "Find their annual Shraddha Tithi from the Panchang, and have an Acharya confirm it where needed."
+      },
+      {
+        "num": "3",
+        "title": "सेवा करें",
+        "gloss": "Arrange Sewa",
+        "body": "Send a request for Brahmin Bhojan or Sewa. An organiser checks availability and confirms with you."
+      }
+    ]
+  },
+  "finder": {
+    "heading": "Find Your Loved One’s Shraddha Date",
+    "body": "Get the annual Shraddha date based on the Tithi on which your loved one passed away.",
+    "needTitle": "What you will need",
+    "needItems": [
+      "Date of death",
+      "Time of death, if known",
+      "Place of death",
+      "The year and city where Shraddha will be performed"
+    ],
+    "status": "The date calculation is being built. Results will only be shown once a verified Panchang calculation is connected.",
+    "sample": {
+      "label": "Example",
+      "title": "Shraddha Tithi",
+      "rows": [
+        {
+          "k": "Loved one",
+          "v": "—"
+        },
+        {
+          "k": "Tithi at time of death",
+          "v": "Dwitiya (द्वितीया)"
+        },
+        {
+          "k": "Paksha",
+          "v": "Krishna Paksha"
+        },
+        {
+          "k": "Shraddha in Pitra Paksha",
+          "v": "Dwitiya Shraddha"
+        },
+        {
+          "k": "Date",
+          "v": "After Panchang calculation"
+        }
+      ],
+      "footnote": "This is only an example. The actual result depends on the selected Panchang and location."
+    }
+  },
+  "footer": {
+    "description": "Pitra Sewa helps families honour their departed loved ones through Shraddha, Brahmin Sewa, and the remembrance of ancestors.",
+    "pagesTitle": "Pages",
+    "legalTitle": "Information",
+    "contactTitle": "Contact",
+    "contactPending": "Contact details will be available soon.",
+    "phone": "Phone",
+    "email": "Email",
+    "whatsapp": "Message us on WhatsApp",
+    "address": "Address",
+    "disclaimer": "Shraddha rituals and dates may differ by family, region and Panchang tradition. This website offers general information and help with date calculation. For the final religious decision, please seek guidance from your family priest or a qualified Acharya.",
+    "rights": "All rights reserved."
+  },
+  "comingSoon": {
+    "heading": "This page is being prepared",
+    "back": "Back to home",
+    "pages": {
+      "dateFinder": {
+        "title": "Shraddha Date Finder",
+        "summary": "Enter the date, time and place of death to find the annual Shraddha Tithi. No date will be shown until a verified Panchang calculation is connected."
+      },
+      "whatIsShraddha": {
+        "title": "What is Shraddha?",
+        "summary": "Simple explanations of Shraddha, Pitra Paksha, Brahmin Bhojan and regional traditions."
+      },
+      "brahminSewa": {
+        "title": "Brahmin Sewa",
+        "summary": "The full Sewa process, from choosing a Sewa to the organiser’s confirmation."
+      },
+      "sewaOptions": {
+        "title": "Sewa Options",
+        "summary": "Brahmin Bhojan, Brahmin Sewa, Temple Sewa and Custom Sewa."
+      },
+      "faqs": {
+        "title": "FAQs",
+        "summary": "Answers to common questions about Shraddha dates, Sewa and bookings."
+      },
+      "contact": {
+        "title": "Contact",
+        "summary": "Phone, email, WhatsApp and a contact form."
+      },
+      "bookSewa": {
+        "title": "Book Brahmin Sewa",
+        "summary": "A form to request Sewa. Every request is treated as confirmed only after an organiser confirms it."
+      },
+      "privacy": {
+        "title": "Privacy Policy",
+        "summary": "How we collect, protect and use your information."
+      },
+      "terms": {
+        "title": "Terms",
+        "summary": "The terms for using Pitra Sewa."
+      },
+      "disclaimer": {
+        "title": "Disclaimer",
+        "summary": "The limits of date calculation and religious information on this site."
+      }
+    }
+  },
+  "notFound": {
+    "title": "We couldn’t find this page",
+    "body": "Please check the address, or continue from the home page.",
+    "back": "Go to home"
+  },
+  "whatsapp": {
+    "message": "Namaste, I would like to know more about Pitra Sewa."
+  }
+}
