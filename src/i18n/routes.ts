@@ -33,7 +33,6 @@ export const legalNav = ["privacy", "terms", "disclaimer"] as const satisfies re
 
 /** Pages that exist as routes but are built in a later stage. */
 export const upcomingPages = [
-  "dateFinder",
   "whatIsShraddha",
   "brahminSewa",
   "sewaOptions",

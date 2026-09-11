@@ -10,13 +10,14 @@ one's Shraddha Tithi, and request Brahmin Sewa.
 | Stage | Scope | State |
 |---|---|---|
 | 1 | Structure, design system, homepage, navigation, footer, Hindi/English | **Done** |
-| 2 | Date Finder UI, validation, result + print layout | Next |
-| 3 | Panchang engine, conventions, fixtures, priest verification | Planned — see `docs/PANCHANG_PLAN.md` |
+| 2 | Date Finder UI, validation, result + print layout | **Done** |
+| 3 | Panchang engine, conventions, fixtures, priest verification | **Built** — awaiting API key + live verification (`docs/PANCHANG_PLAN.md`) |
 | 4 | Sewa pages, booking, database, admin | Planned — see `docs/DATABASE.md` |
 | 5 | SEO (sitemap, structured data), legal pages, hardening, deployment | Planned |
 
 Pages not built yet show a clear "being prepared" page instead of a broken link.
-**No Shraddha date is calculated anywhere yet** — by design.
+The Date Finder calculates only when `SHUBH_API_KEY` is set, and marks every result
+"priest confirmation needed" until `PANCHANG_RESULTS_VERIFIED=true`.
 
 ## Run it
 
@@ -28,6 +29,9 @@ cp .env.example .env.local   # fill in what you have; blanks are hidden on the s
 npm run dev                  # http://localhost:3000 → redirects to /hi
 npm run build && npm start   # production check
 npm run lint
+npm test                     # unit tests (network mocked)
+SHUBH_API_KEY=… npm test     # also runs the live Pitru Paksha fixture check
+PANCHANG_PROVIDER=synthetic npm run dev   # UI testing with a fake calendar (banner shown)
 ```
 
 ## Environment variables
@@ -36,7 +40,10 @@ npm run lint
 |---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | Canonical links, Open Graph | `http://localhost:3000` |
 | `WHATSAPP_NUMBER` | WhatsApp link, digits with country code (`91…`) | WhatsApp link hidden |
-| `CONTACT_PHONE`, `CONTACT_EMAIL`, `CONTACT_ADDRESS` | Footer contact | Hidden; "details coming soon" shown |
+| `CONTACT_PHONE`, `CONTACT_EMAIL`, `CONTACT_ADDRESS` | Footer contact, verification email | Hidden; "details coming soon" shown |
+| `SHUBH_API_KEY` | Primary Panchang data (server-only) | Date Finder shows a printable slip + priest route, no date |
+| `NAVAMSHA_API_KEY` | Second source for the death Tithi (server-only) | No cross-check (noted on result) |
+| `PANCHANG_RESULTS_VERIFIED` | `true` after live fixtures pass + Acharya review | Every result marked for priest confirmation |
 
 Pages are pre-rendered, so after changing these, **redeploy**. In Stage 4 they move to
 the admin panel (`SiteSetting`).

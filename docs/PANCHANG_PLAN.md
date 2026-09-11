@@ -1,7 +1,36 @@
-# Shraddha date engine — integration plan
+# Shraddha date engine
 
-Status: **plan, not yet implemented** (Stages 2–3). The website shows no calculated
-date until this engine exists and passes its test fixtures.
+Status: **implemented** against documented provider APIs; **not yet live-verified**.
+Every result is labelled "priest confirmation needed" until the live fixture test
+passes and `PANCHANG_RESULTS_VERIFIED=true` is set.
+
+## 0. Provider decision (Sept 2026)
+
+Four free APIs were evaluated from their documentation (ShubhAI, Navamsha,
+Tantrakulam, GrahaAPI). None offers Shraddha/Pitru Paksha calculation, so the
+Shraddha rules live in our code (`src/services/panchang/rules.ts`) on top of plain
+Panchang data.
+
+- **Primary: ShubhAI** — free for commercial use (attribution), Tithi with end time,
+  Amanta lunar month with Adhik detection, sunrise/sunset, 60 req/min.
+- **Second source: Navamsha** — free tier (launch; may change), Tithi + end time; used
+  only to cross-check the death Tithi.
+- Tantrakulam — strongest rule awareness, but its free tier is non-commercial; the
+  Commercial licence (₹4,999/yr) is the upgrade path.
+- GrahaAPI — both month systems documented, but terms and response fields could not be verified.
+
+Code: `providers/shubh.ts`, `providers/navamsha.ts`. Keys are read only in
+`providers/index.ts` (server). Responses are cached 30 days (a day's Panchang never
+changes). Unknown response shapes are rejected, never guessed.
+
+## 0.1 Going live — checklist
+
+1. Add `SHUBH_API_KEY` (and optionally `NAVAMSHA_API_KEY`) in Vercel → Environment Variables; redeploy.
+2. Run the live fixtures: `SHUBH_API_KEY=… npx vitest run src/services/panchang/__tests__/live-fixtures.test.ts`.
+3. An Acharya reviews ~20 results (normal, near-boundary, time unknown, Purnima,
+   Chaturdashi, Adhik years) against a printed Panchang; add them as fixtures.
+4. Write the rule document for two-day / no-Aparahna / Kshaya cases → bump `RULES_VERSION`.
+5. Only then set `PANCHANG_RESULTS_VERIFIED=true`.
 
 ## 1. Two different questions families ask
 
