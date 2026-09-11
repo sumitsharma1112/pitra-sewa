@@ -88,6 +88,11 @@ docs/                      Panchang plan, database design
 
 ## Deploy (Vercel)
 
-1. Push to GitHub, import the repo in Vercel (framework auto-detected).
-2. Add the environment variables above (Production + Preview).
-3. Deploy, then set your domain and update `NEXT_PUBLIC_SITE_URL`.
+This repo is connected to the Vercel project `pitra-sewa`. Every push to `main`
+deploys to production automatically; other branches get preview URLs.
+
+- Deployment protection: *Standard* — the production domain is public; preview and
+  per-deployment URLs require a Vercel login.
+- After the first production deploy, set `NEXT_PUBLIC_SITE_URL` to the production URL
+  in Vercel → Settings → Environment Variables, then redeploy.
+- Environment variables above can be added the same way (Production + Preview).
