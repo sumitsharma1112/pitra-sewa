@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aparahna, pickObservanceDay, pitruPakshaTithi, tithiAtInstant, InconsistentDataError } from "../rules";
+import { aparahna, isCloseCall, pickObservance, pitruPakshaTithi, tithiAtInstant, InconsistentDataError } from "../rules";
 import type { DayPanchang } from "../types";
 
 // Helper: build a day in IST; times given as "HH:MM" on that date (IST = UTC+5:30).
@@ -67,54 +67,45 @@ describe("pitruPakshaTithi", () => {
   });
 });
 
-describe("pickObservanceDay", () => {
-  it("settles a Tithi that covers Aparahna on one day only", () => {
-    // Target 18 runs 20th 09:00 → 21st 11:00: covers 20th Aparahna fully, not the 21st.
-    const days = [
-      day("2026-09-19", 16, "2026-09-19", "08:00"),
-      day("2026-09-20", 17, "2026-09-20", "09:00"),
-      day("2026-09-21", 18, "2026-09-21", "11:00"),
-      day("2026-09-22", 19, "2026-09-22", "12:00"),
-    ];
-    const p = pickObservanceDay(18, days);
+describe("pickObservance (Aparahna rule, jyotisha tie-break)", () => {
+  // Days with sunrise 06:00, sunset 18:00 IST → Aparahna 13:12–15:36.
+  const days = ["2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22"].map((date) => ({
+    date,
+    sunrise: ist(date, "06:00"),
+    sunset: ist(date, "18:00"),
+  }));
+  const span = (s: [string, string], e: [string, string]) => ({ start: ist(...s), end: ist(...e) });
+
+  it("takes the one day whose Aparahna the Tithi covers", () => {
+    const p = pickObservance(span(["2026-09-20", "09:00"], ["2026-09-21", "11:00"]), days);
     expect(p.kind).toBe("single");
-    if (p.kind !== "incomplete") expect(p.options[0]).toMatchObject({ date: "2026-09-20", coverageMinutes: 144 });
+    expect(p.options[0]).toMatchObject({ date: "2026-09-20", coverageMinutes: 144 });
   });
 
-  it("returns both days when it touches two Aparahnas", () => {
-    // Target 18 runs 20th 14:00 → 21st 14:00.
-    const days = [
-      day("2026-09-20", 17, "2026-09-20", "14:00"),
-      day("2026-09-21", 18, "2026-09-21", "14:00"),
-      day("2026-09-22", 19, "2026-09-22", "13:00"),
-    ];
-    const p = pickObservanceDay(18, days);
+  it("chooses the day with the larger share when two days are touched", () => {
+    // Covers 20th 14:00–15:36 (96 min) and 21st 13:12–14:30 (78 min) → 20th.
+    const p = pickObservance(span(["2026-09-20", "14:00"], ["2026-09-21", "14:30"]), days);
     expect(p.kind).toBe("two-days");
-    if (p.kind !== "incomplete") expect(p.options.map((o) => o.date)).toEqual(["2026-09-20", "2026-09-21"]);
+    expect(p.options.map((o) => o.date)).toEqual(["2026-09-20", "2026-09-21"]);
   });
 
-  it("reports when no Aparahna is covered", () => {
-    // Target 18 runs 20th 16:00 → 21st 13:00 (between the two windows).
-    const days = [
-      day("2026-09-20", 17, "2026-09-20", "16:00"),
-      day("2026-09-21", 18, "2026-09-21", "13:00"),
-      day("2026-09-22", 19, "2026-09-22", "12:00"),
-    ];
-    expect(pickObservanceDay(18, days).kind).toBe("none");
+  it("gives a tie to the later day", () => {
+    // 72 min on each day.
+    const p = pickObservance(span(["2026-09-20", "14:24"], ["2026-09-21", "14:24"]), days);
+    expect(p.options[0].date).toBe("2026-09-21");
   });
 
-  it("detects a Kshaya Shraddha Tithi", () => {
-    const days = [
-      day("2026-09-20", 17, "2026-09-20", "08:00"),
-      day("2026-09-21", 17, "2026-09-21", "07:00"), // hypothetical run where 18 is skipped
-      day("2026-09-22", 19, "2026-09-22", "09:00"),
-    ];
-    const p = pickObservanceDay(18, days);
-    expect(p.kind).toBe("kshaya");
+  it("uses the next Aparahna when none is covered", () => {
+    const p = pickObservance(span(["2026-09-20", "16:00"], ["2026-09-21", "13:00"]), days);
+    expect(p).toMatchObject({ kind: "none", options: [{ date: "2026-09-21", coverageMinutes: 0 }] });
   });
 
-  it("asks for more data when the start is not visible", () => {
-    const days = [day("2026-09-21", 18, "2026-09-21", "14:00"), day("2026-09-22", 19, "2026-09-22", "13:00")];
-    expect(pickObservanceDay(18, days).kind).toBe("incomplete");
+  it("flags decisions that a few minutes could flip", () => {
+    expect(isCloseCall(span(["2026-09-20", "14:23"], ["2026-09-21", "14:25"]), days)).toBe(true);
+    expect(isCloseCall(span(["2026-09-20", "09:00"], ["2026-09-21", "11:00"]), days)).toBe(false);
+  });
+
+  it("refuses when the given days do not reach the next Aparahna", () => {
+    expect(() => pickObservance(span(["2026-09-22", "16:00"], ["2026-09-23", "13:00"]), days)).toThrow(InconsistentDataError);
   });
 });

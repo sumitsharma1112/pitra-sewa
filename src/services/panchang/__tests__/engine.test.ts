@@ -1,125 +1,127 @@
 import { describe, expect, it } from "vitest";
-import { calculateShraddha, localToInstant } from "../engine";
+import { calculateShraddha, deathTithi, localToInstant, pitruPakshaDay } from "../engine";
 import { ProviderError } from "../providers/errors";
-import { SyntheticProvider } from "../providers/synthetic";
-import type { CalculationInput, PanchangProvider, Place } from "../types";
+import type { CalculationInput, DayPanchang, PanchangProvider, Place } from "../types";
 
-const jalandhar: Place = { id: "1", name: "Jalandhar", state: "23", lat: 31.326, lng: 75.576, utcOffsetMinutes: 330 };
-
-// A made-up regular calendar where Bhadrapada (index 5) Shukla Pratipada begins 2026-09-11 03:00 UTC.
-const synth = (shiftHours = 0) =>
-  new SyntheticProvider({ epoch: new Date(Date.UTC(2026, 8, 11, 3 + shiftHours, 0)), firstMonth: 5 });
+const delhi: Place = { id: "1273294", name: "Delhi", state: "07", lat: 28.652, lng: 77.231, utcOffsetMinutes: 330 };
 
 const base: CalculationInput = {
-  deathDate: "2024-03-12",
-  deathTime: "10:30",
-  deathPlace: jalandhar,
-  observancePlace: jalandhar,
+  deathDate: "2025-09-21", // Sarva Pitru Amavasya
+  deathTime: "12:00",
+  deathPlace: delhi,
+  observancePlace: delhi,
   year: 2026,
   kind: "pitru-paksha",
   monthSystem: "purnimanta",
 };
+const opts = { crossCheck: null, requireReview: false } as const;
 
-const set = (primary: PanchangProvider, extra: Partial<{ secondary: PanchangProvider; verified: boolean }> = {}) => ({
-  primary,
-  secondary: extra.secondary,
-  verified: extra.verified ?? true,
-  synthetic: true,
+/** A fake second source that reports a fixed Tithi for every day. */
+const fixedProvider = (index: number): PanchangProvider => ({
+  id: "fake",
+  label: "Fake",
+  url: "",
+  getDay: async (date: string): Promise<DayPanchang> => {
+    const midnight = Date.parse(`${date}T00:00:00+05:30`);
+    return {
+      date,
+      sunrise: new Date(midnight + 6 * 3600_000),
+      sunset: new Date(midnight + 18 * 3600_000),
+      tithi: { index, endsAt: new Date(midnight + 30 * 3600_000) },
+    };
+  },
 });
 
 describe("calculateShraddha", () => {
-  it("says so when no provider is configured", async () => {
-    expect(await calculateShraddha(base, null)).toEqual({ status: "not-configured" });
+  it("finds Sarva Pitru Amavasya for an Amavasya death", async () => {
+    const out = await calculateShraddha(base, opts);
+    if (out.status !== "result") throw new Error(out.status);
+    expect(out.result.death.tithiCandidates).toEqual([30]);
+    expect(out.result.shraddhaTithi).toBe(30);
+    expect(out.result.death.month).toEqual({ amanta: "bhadrapada", isAdhik: false });
+    // Same day jyotisha gives for Delhi 2026 (see fixtures).
+    expect(out.result.observance.options[0].date).toBe(pitruPakshaDay(30, 2026, delhi).observance.options[0].date);
+    expect(out.result.sources.engine).toMatch(/astronomy-engine/);
   });
 
-  it("does not attempt Varshik Shraddha in v1", async () => {
-    expect(await calculateShraddha({ ...base, kind: "varshik" }, set(synth()))).toEqual({
-      status: "unsupported",
-      reason: "varshik",
-    });
+  it("marks a clean case as calculated", async () => {
+    const out = await calculateShraddha(base, opts);
+    if (out.status !== "result") throw new Error(out.status);
+    expect(out.result.confidence).toBe("calculated");
   });
 
-  it("finds the same-number Tithi in Pitru Paksha and a day for it", async () => {
-    const out = await calculateShraddha(base, set(synth()));
-    expect(out.status).toBe("result");
-    if (out.status !== "result") return;
-    const { result } = out;
-    const deathTithi = result.death.tithiCandidates[0];
-    expect(result.death.tithiCandidates).toHaveLength(1);
-    // Same number in the paksha, in the Krishna half (or Purnima/Amavasya as is).
-    const n = ((deathTithi - 1) % 15) + 1;
-    expect(result.shraddhaTithi).toBe(deathTithi === 15 || deathTithi === 30 ? deathTithi : 15 + n);
-    expect(result.observance.options.length).toBeGreaterThan(0);
-    expect(result.rulesVersion).toMatch(/pitru-paksha/);
-  });
-
-  it("marks every result preliminary until the provider check is signed off", async () => {
-    const out = await calculateShraddha(base, set(synth(), { verified: false }));
-    if (out.status !== "result") throw new Error("expected result");
-    expect(out.result.confidence).toBe("needs-verification");
-    expect(out.result.reasons.map((r) => r.code)).toContain("engine-preliminary");
-  });
-
-  it("lists possible Tithis when the time of death is unknown", async () => {
-    const out = await calculateShraddha({ ...base, deathTime: undefined }, set(synth()));
-    if (out.status !== "result") throw new Error("expected result");
+  it("gives a Shraddha day for every possible Tithi when the time is unknown", async () => {
+    const out = await calculateShraddha({ ...base, deathTime: undefined }, opts);
+    if (out.status !== "result") throw new Error(out.status);
     expect(out.result.death.tithiCandidates.length).toBeGreaterThanOrEqual(2);
-    expect(out.result.reasons.map((r) => r.code)).toContain("time-unknown");
-    expect(out.result.confidence).toBe("needs-verification");
-    // A Shraddha day is worked out for every possible Tithi, not just the first.
     expect(out.result.alternatives).toHaveLength(out.result.death.tithiCandidates.length - 1);
-    expect(out.result.alternatives[0].observance.options.length).toBeGreaterThan(0);
+    expect(out.result.confidence).toBe("needs-verification");
   });
 
-  it("flags disagreement between the two sources", async () => {
-    // Second source runs 12 hours apart, so the death Tithi differs.
-    const out = await calculateShraddha(base, set(synth(), { secondary: synth(12) }));
-    if (out.status !== "result") throw new Error("expected result");
+  it("flags a death minutes from a Tithi change", async () => {
+    // Amavasya of 21 Sep 2025 ended at 19:54 UTC = 01:24 IST on the 22nd.
+    const out = await calculateShraddha({ ...base, deathDate: "2025-09-22", deathTime: "01:20" }, opts);
+    if (out.status !== "result") throw new Error(out.status);
+    expect(out.result.reasons.map((r) => r.code)).toContain("near-boundary");
+  });
+
+  it("notes Chaturdashi and Purnima customs", async () => {
+    const chaturdashi = await calculateShraddha({ ...base, deathDate: "2025-09-20", deathTime: "12:00" }, opts);
+    if (chaturdashi.status !== "result") throw new Error();
+    expect(chaturdashi.result.reasons.map((r) => r.code)).toContain("chaturdashi");
+    const purnima = await calculateShraddha({ ...base, deathDate: "2025-09-07", deathTime: "12:00" }, opts);
+    if (purnima.status !== "result") throw new Error();
+    expect(purnima.result.shraddhaTithi).toBe(15);
+    expect(purnima.result.reasons.map((r) => r.code)).toContain("purnima");
+  });
+
+  it("flags disagreement with an external cross-check", async () => {
+    const out = await calculateShraddha(base, { crossCheck: { provider: fixedProvider(5) }, requireReview: false });
+    if (out.status !== "result") throw new Error();
     expect(out.result.reasons.map((r) => r.code)).toContain("sources-disagree");
+    expect(out.result.confidence).toBe("needs-verification");
   });
 
-  it("agrees with an identical second source", async () => {
-    const out = await calculateShraddha(base, set(synth(), { secondary: synth() }));
-    if (out.status !== "result") throw new Error("expected result");
+  it("accepts an agreeing cross-check", async () => {
+    const out = await calculateShraddha(base, { crossCheck: { provider: fixedProvider(30) }, requireReview: false });
+    if (out.status !== "result") throw new Error();
     expect(out.result.reasons.map((r) => r.code)).not.toContain("sources-disagree");
+    expect(out.result.sources.crossCheck?.label).toBe("Fake");
   });
 
-  it("flags a failed second source", async () => {
+  it("only notes a failed cross-check", async () => {
     const failing: PanchangProvider = {
-      id: "x",
-      label: "x",
-      url: "",
+      ...fixedProvider(30),
       getDay: async () => {
         throw new ProviderError("unavailable", "down");
       },
     };
-    const out = await calculateShraddha(base, set(synth(), { secondary: failing }));
-    if (out.status !== "result") throw new Error("expected result");
+    const out = await calculateShraddha(base, { crossCheck: { provider: failing }, requireReview: false });
+    if (out.status !== "result") throw new Error();
     expect(out.result.reasons.map((r) => r.code)).toContain("secondary-failed");
+    expect(out.result.confidence).toBe("calculated");
+  });
+
+  it("can force every result to review", async () => {
+    const out = await calculateShraddha(base, { crossCheck: null, requireReview: true });
+    if (out.status !== "result") throw new Error();
     expect(out.result.confidence).toBe("needs-verification");
   });
 
-  it("turns provider failures into a service error, not a crash", async () => {
-    const limited: PanchangProvider = {
-      id: "x",
-      label: "x",
-      url: "",
-      getDay: async () => {
-        throw new ProviderError("rate-limited", "429");
-      },
-    };
-    expect(await calculateShraddha(base, set(limited))).toEqual({ status: "service-error", error: "rate-limited" });
+  it("does not attempt Varshik Shraddha yet", async () => {
+    expect(await calculateShraddha({ ...base, kind: "varshik" }, opts)).toEqual({ status: "unsupported", reason: "varshik" });
   });
 
-  it("notes the first year after a death", async () => {
-    const out = await calculateShraddha({ ...base, deathDate: "2026-02-01" }, set(synth()));
-    if (out.status !== "result") throw new Error("expected result");
-    expect(out.result.reasons.map((r) => r.code)).toContain("first-year");
+  it("refuses years outside the table", async () => {
+    expect(await calculateShraddha({ ...base, year: 2075 }, opts)).toEqual({ status: "unsupported", reason: "out-of-range" });
   });
 });
 
-describe("localToInstant", () => {
-  it("converts IST wall time to UTC", () => {
-    expect(localToInstant("2024-03-12", "10:30", jalandhar).toISOString()).toBe("2024-03-12T05:00:00.000Z");
+describe("deathTithi", () => {
+  it("converts IST wall time", () => {
+    expect(localToInstant("2024-03-12", "10:30", delhi).toISOString()).toBe("2024-03-12T05:00:00.000Z");
+  });
+  it("is exact when the time is known", () => {
+    expect(deathTithi({ deathDate: "2025-09-21", deathTime: "12:00", deathPlace: delhi }).candidates).toEqual([30]);
   });
 });

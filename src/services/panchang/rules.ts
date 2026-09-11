@@ -6,10 +6,10 @@
  * as an explicit ambiguity so the UI can ask for a priest's confirmation
  * instead of guessing.
  */
-import { nextTithi, numberInPaksha, prevTithi, tithiDistance } from "./tithi";
+import { nextTithi, numberInPaksha, tithiDistance } from "./tithi";
 import type { DayPanchang, ObservanceOption } from "./types";
 
-export const RULES_VERSION = "pitru-paksha-v1-draft";
+export const RULES_VERSION = "pitru-paksha-v1 (aparahna-vyapini, jyotisha tie-break)";
 /** Results this close to a Tithi change are treated as uncertain. */
 export const BOUNDARY_MARGIN_MINUTES = 10;
 
@@ -83,62 +83,72 @@ export function pitruPakshaTithi(deathTithi: number): number {
   return 15 + numberInPaksha(deathTithi);
 }
 
-type Span =
-  | { kind: "normal"; start: Date; end: Date }
-  | { kind: "kshaya"; dayIndex: number }
-  | { kind: "incomplete" };
-
-/** Start and end of the target Tithi from consecutive days of sunrise data. */
-export function tithiSpan(target: number, days: DayPanchang[]): Span {
-  for (let i = 0; i + 1 < days.length; i++) {
-    const a = days[i].tithi.index;
-    const b = days[i + 1].tithi.index;
-    if (tithiDistance(a, b) === 2 && nextTithi(a) === target) return { kind: "kshaya", dayIndex: i };
-  }
-  const withTarget = days.map((d, i) => (d.tithi.index === target ? i : -1)).filter((i) => i >= 0);
-  if (withTarget.length === 0) return { kind: "incomplete" };
-  const first = withTarget[0];
-  const last = withTarget[withTarget.length - 1];
-  if (first === 0) return { kind: "incomplete" }; // cannot see when it started
-  const before = days[first - 1];
-  if (before.tithi.index !== prevTithi(target)) return { kind: "incomplete" };
-  return { kind: "normal", start: before.tithi.endsAt, end: days[last].tithi.endsAt };
+export interface DayWindow {
+  date: string;
+  sunrise: Date;
+  sunset: Date;
 }
 
-export type ObservancePick =
-  | { kind: "single" | "two-days" | "none"; options: ObservanceOption[] }
-  | { kind: "kshaya"; options: ObservanceOption[] }
-  | { kind: "incomplete" };
+export type ObservancePick = {
+  kind: "single" | "two-days" | "none";
+  /** The chosen day first; for "two-days", the other day second. */
+  options: ObservanceOption[];
+};
 
-const option = (day: DayPanchang, coverageMinutes: number): ObservanceOption => ({
+const coverage = (span: { start: Date; end: Date }, day: DayWindow) => {
+  const w = aparahna(day);
+  const overlap = Math.min(span.end.getTime(), w.end.getTime()) - Math.max(span.start.getTime(), w.start.getTime());
+  return Math.max(0, overlap);
+};
+
+const option = (day: DayWindow, ms: number): ObservanceOption => ({
   date: day.date,
   sunrise: day.sunrise,
   sunset: day.sunset,
   aparahna: aparahna(day),
-  coverageMinutes,
+  coverageMinutes: Math.round(ms / MINUTE),
 });
 
 /**
- * The Shraddha day: the day whose Aparahna the target Tithi covers
- * ("aparahna-vyapini"). One day → settled. Two days, none, or a Kshaya
- * Tithi → returned as such for priest confirmation.
+ * The Shraddha day for a Tithi span ("aparahna-vyapini"), following the rule
+ * implemented in jyotisha (MIT, jyotisham/jyotisha — temporal/tithi.py):
+ *  - the day whose Aparahna the Tithi covers;
+ *  - if it covers the Aparahna of two consecutive days, the day with the
+ *    larger covered share (a tie goes to the later day);
+ *  - if it covers no Aparahna at all, the day of the next Aparahna after it ends.
+ * `days` must be consecutive and include the day before the Tithi starts
+ * through the day after it ends.
  */
-export function pickObservanceDay(target: number, days: DayPanchang[]): ObservancePick {
-  const span = tithiSpan(target, days);
-  if (span.kind === "incomplete") return { kind: "incomplete" };
-  if (span.kind === "kshaya") return { kind: "kshaya", options: [option(days[span.dayIndex], 0)] };
-
+export function pickObservance(span: { start: Date; end: Date }, days: DayWindow[]): ObservancePick {
   const covered = days
-    .map((day) => {
-      const w = aparahna(day);
-      const overlap = Math.min(span.end.getTime(), w.end.getTime()) - Math.max(span.start.getTime(), w.start.getTime());
-      return option(day, Math.max(0, Math.round(overlap / MINUTE)));
-    })
-    .filter((o) => o.coverageMinutes > 0);
+    .map((day) => ({ day, ms: coverage(span, day), len: aparahna(day).end.getTime() - aparahna(day).start.getTime() }))
+    .filter((c) => c.ms > 0);
 
-  if (covered.length === 1) return { kind: "single", options: covered };
-  if (covered.length >= 2) return { kind: "two-days", options: covered.slice(0, 2) };
-  // Nowhere in Aparahna: offer the day on which the Tithi began, for the priest to decide.
-  const startDay = [...days].reverse().find((d) => d.sunrise <= span.start) ?? days[0];
-  return { kind: "none", options: [option(startDay, 0)] };
+  if (covered.length === 1) return { kind: "single", options: [option(covered[0].day, covered[0].ms)] };
+  if (covered.length >= 2) {
+    const [a, b] = covered;
+    const aWins = a.ms / a.len > b.ms / b.len;
+    const [win, lose] = aWins ? [a, b] : [b, a];
+    return { kind: "two-days", options: [option(win.day, win.ms), option(lose.day, lose.ms)] };
+  }
+  const next = days.find((d) => aparahna(d).start >= span.end);
+  if (!next) throw new InconsistentDataError("no Aparahna after the Tithi within the given days");
+  return { kind: "none", options: [option(next, 0)] };
+}
+
+/**
+ * True when small timing uncertainties (±3 min in sunrise/sunset, ±1 min in the
+ * Tithi change) could move the Shraddha to a different day.
+ */
+export function isCloseCall(span: { start: Date; end: Date }, days: DayWindow[]): boolean {
+  const chosen = pickObservance(span, days).options[0].date;
+  const shift = (d: Date, min: number) => new Date(d.getTime() + min * MINUTE);
+  for (const dayShift of [-3, 3]) {
+    for (const tithiShift of [-1, 1]) {
+      const s = { start: shift(span.start, tithiShift), end: shift(span.end, tithiShift) };
+      const d = days.map((x) => ({ ...x, sunrise: shift(x.sunrise, dayShift), sunset: shift(x.sunset, -dayShift) }));
+      if (pickObservance(s, d).options[0].date !== chosen) return true;
+    }
+  }
+  return false;
 }

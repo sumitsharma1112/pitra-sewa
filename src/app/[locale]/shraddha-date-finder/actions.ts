@@ -7,7 +7,6 @@ import { getPlace } from "@/lib/places";
 import { allow } from "@/lib/rate-limit";
 import { validateFinder } from "@/lib/validation/date-finder";
 import { calculateShraddha } from "@/services/panchang/engine";
-import { getProviders } from "@/services/panchang/providers";
 
 const FIELDS = [
   "name",
@@ -34,8 +33,8 @@ const reference = () =>
     .replace(/(.{3})/, "$1-");
 
 /**
- * Server action for the Date Finder. Runs only on the server: the Panchang
- * API keys never reach the browser. Nothing submitted here is stored.
+ * Server action for the Date Finder. The calculation runs on the server (and
+ * any optional cross-check API key stays there). Nothing submitted is stored.
  */
 export async function calculateShraddhaAction(_prev: FinderState, formData: FormData): Promise<FinderState> {
   const values: FinderValues = {};
@@ -55,20 +54,15 @@ export async function calculateShraddhaAction(_prev: FinderState, formData: Form
   const input = checked.data;
   const deathPlace = getPlace(input.deathPlaceId)!;
   const observancePlace = getPlace(input.observancePlaceId)!;
-  const providers = getProviders();
-
-  const outcome = await calculateShraddha(
-    {
-      deathDate: input.deathDate,
-      deathTime: input.deathTime,
-      deathPlace,
-      observancePlace,
-      year: input.year,
-      kind: input.kind,
-      monthSystem: input.monthSystem,
-    },
-    providers,
-  );
+  const outcome = await calculateShraddha({
+    deathDate: input.deathDate,
+    deathTime: input.deathTime,
+    deathPlace,
+    observancePlace,
+    year: input.year,
+    kind: input.kind,
+    monthSystem: input.monthSystem,
+  });
 
   return {
     status: "done",
@@ -85,7 +79,6 @@ export async function calculateShraddhaAction(_prev: FinderState, formData: Form
       notes: input.notes,
     },
     outcome,
-    synthetic: Boolean(providers?.synthetic),
     values,
   };
 }

@@ -25,6 +25,5 @@ export type FinderState =
       generatedAt: string;
       summary: FinderSummary;
       outcome: CalculationOutcome;
-      synthetic: boolean;
       values: FinderValues;
     };

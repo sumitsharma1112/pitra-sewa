@@ -39,11 +39,10 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
       : { tone: "verify", text: r.statusVerify };
 
   let problem: { title: string; body: string } | null = null;
-  if (outcome.status === "not-configured") problem = { title: r.notConfiguredTitle, body: r.notConfiguredBody };
-  else if (outcome.status === "service-error") problem = { title: r.serviceErrorTitle, body: r.serviceErrorBody };
+  if (outcome.status === "service-error") problem = { title: r.serviceErrorTitle, body: r.serviceErrorBody };
   else if (outcome.status === "unsupported") problem = { title: r.notFoundTitle, body: r.notFoundBody };
 
-  const dates = result?.observance.options ?? [];
+  const dates = result?.observance.options.slice(0, 1) ?? [];
   const deathTithiText = result ? or(result.death.tithiCandidates.map((i) => tithiLabel(i, fd))) : null;
   const month = result?.death.month;
 
@@ -79,19 +78,13 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
         ]),
         [
           r.rows.sources,
-          result.sources.primary.label + (result.sources.secondary ? ` · ${fill(r.crossChecked, { source: result.sources.secondary.label })}` : ""),
+          r.engineValue + (result.sources.crossCheck ? ` · ${fill(r.crossChecked, { source: result.sources.crossCheck.label })}` : ""),
         ],
       ]
     : [];
 
   return (
     <section aria-labelledby="result-heading" className="space-y-8">
-      {state.synthetic && (
-        <p role="note" className="rounded-xl border-2 border-dashed border-danger bg-paper p-4 font-semibold text-danger">
-          {fd.testData}
-        </p>
-      )}
-
       <div className="print-only mb-6 hidden items-center justify-between border-b border-line pb-4">
         <span className="font-display text-2xl text-maroon">पितृ सेवा · Pitra Sewa</span>
         <span className="text-base">
@@ -141,7 +134,7 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
                 <li key={c.deathTithi}>
                   <p className="text-base">{fill(r.ifTithi, { tithi: tithiLabel(c.deathTithi, fd) })}</p>
                   <p className="font-display text-2xl leading-snug text-maroon">
-                    {or(c.observance.options.map((o) => formatDate(o.date, locale)))}
+                    {formatDate(c.observance.options[0].date, locale)}
                   </p>
                   <p className="text-base text-muted">{tithiLabel(c.shraddhaTithi, fd)}</p>
                 </li>
@@ -154,7 +147,7 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
           <div className="border-b border-line px-6 py-6">
             <p className="text-base text-muted">{r.rows.shraddhaDate}</p>
             <p className="mt-1 font-display text-3xl leading-snug text-maroon sm:text-4xl">
-              {or(dates.map((o) => formatDate(o.date, locale)))}
+              {formatDate(dates[0].date, locale)}
             </p>
             <p className="mt-2 text-lg">
               {tithiLabel(result.shraddhaTithi, fd)} · {fd.fields.kindPitru}
@@ -175,7 +168,12 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
             {result.reasons.map((reason) => (
               <li key={reason.code} className="flex gap-3">
                 <span aria-hidden="true" className="mt-[0.72em] h-1.5 w-1.5 shrink-0 rotate-45 bg-gold" />
-                <span>{fill(r.reasons[reason.code], { minutes: reason.minutes ?? "" })}</span>
+                <span>
+                  {fill(r.reasons[reason.code as keyof typeof r.reasons], {
+                    minutes: reason.minutes ?? "",
+                    date: reason.date ? formatDate(reason.date, locale) : "",
+                  })}
+                </span>
               </li>
             ))}
           </ul>

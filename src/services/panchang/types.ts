@@ -62,12 +62,11 @@ export type ShraddhaKind = "pitru-paksha" | "varshik";
 export type ReasonCode =
   | "time-unknown"
   | "near-boundary"
-  | "kshaya-death"
   | "sources-disagree"
   | "secondary-failed"
   | "two-days"
   | "no-aparahna"
-  | "kshaya-shraddha"
+  | "close-call"
   | "adhik-maas"
   | "purnima"
   | "chaturdashi"
@@ -95,13 +94,13 @@ export interface ObservanceOption {
 }
 
 export interface Observance {
-  kind: "single" | "two-days" | "none" | "kshaya";
+  kind: "single" | "two-days" | "none";
   options: ObservanceOption[];
 }
 
 export interface ShraddhaResult {
   confidence: "calculated" | "needs-verification";
-  reasons: { code: ReasonCode; minutes?: number }[];
+  reasons: { code: ReasonCode; minutes?: number; date?: string }[];
   death: {
     /** One Tithi, or two candidates when it cannot be settled. */
     tithiCandidates: number[];
@@ -112,14 +111,13 @@ export interface ShraddhaResult {
   observance: Observance;
   /** When the death Tithi is uncertain: the Shraddha for each other possible Tithi. */
   alternatives: { deathTithi: number; shraddhaTithi: number; observance: Observance }[];
-  sources: { primary: { label: string; url: string }; secondary?: { label: string; url: string } };
+  sources: { engine: string; crossCheck?: { label: string; url: string } };
   rulesVersion: string;
 }
 
 export type CalculationOutcome =
   | { status: "result"; result: ShraddhaResult }
-  | { status: "not-configured" }
   | { status: "service-error"; error: ProviderErrorKind }
-  | { status: "unsupported"; reason: "varshik" | "not-found" };
+  | { status: "unsupported"; reason: "varshik" | "out-of-range" };
 
 export type ProviderErrorKind = "rate-limited" | "timeout" | "unavailable" | "invalid-response" | "auth";

@@ -30,10 +30,10 @@ export function verificationMessage(state: Done, locale: Locale, fd: Dictionary[
     const res = state.outcome.result;
     lines.push(`${r.rows.deathTithi}: ${res.death.tithiCandidates.map((i) => tithiLabel(i, fd)).join(r.or)}`);
     lines.push(`${r.rows.shraddhaTithi}: ${tithiLabel(res.shraddhaTithi, fd)}`);
-    lines.push(`${r.rows.shraddhaDate}: ${res.observance.options.map((o) => formatDate(o.date, locale, false)).join(r.or)}`);
+    lines.push(`${r.rows.shraddhaDate}: ${formatDate(res.observance.options[0].date, locale, false)}`);
     for (const alt of res.alternatives) {
       lines.push(
-        `${fill(r.ifTithi, { tithi: tithiLabel(alt.deathTithi, fd) })}: ${alt.observance.options.map((o) => formatDate(o.date, locale, false)).join(r.or)}`,
+        `${fill(r.ifTithi, { tithi: tithiLabel(alt.deathTithi, fd) })}: ${formatDate(alt.observance.options[0].date, locale, false)}`,
       );
     }
     lines.push(`(${res.confidence === "calculated" ? r.statusCalculated : r.statusVerify})`);
