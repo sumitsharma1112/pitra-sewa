@@ -318,7 +318,7 @@
       "selected": "चुना गया"
     },
     "result": {
-      "heading": "आपकी श्राद्ध तिथि",
+      "heading": "आपके प्रियजन की श्राद्ध तिथि",
       "statusCalculated": "पंचांग से गणना पूरी हुई",
       "statusVerify": "पुरोहित से पुष्टि आवश्यक",
       "serviceErrorTitle": "पंचांग सेवा से अभी उत्तर नहीं मिला",
@@ -384,7 +384,9 @@
       "reference": "संदर्भ संख्या",
       "possibleDays": "संभावित श्राद्ध दिन",
       "ifTithi": "यदि मृत्यु के समय {tithi} थी",
-      "engineValue": "खगोलीय गणना: astronomy-engine · नियम: jyotisha (अपराह्न-व्यापिनी)"
+      "engineValue": "खगोलीय गणना: astronomy-engine · नियम: jyotisha (अपराह्न-व्यापिनी)",
+      "cardTitle": "श्राद्ध तिथि",
+      "cardTitleNamed": "{name} की श्राद्ध तिथि"
     },
     "verify": {
       "title": "पुरोहित से पुष्टि",

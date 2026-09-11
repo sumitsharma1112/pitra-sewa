@@ -318,7 +318,7 @@
       "selected": "Selected"
     },
     "result": {
-      "heading": "Your Shraddha Date",
+      "heading": "Your loved one’s Shraddha date",
       "statusCalculated": "Calculated from the Panchang",
       "statusVerify": "Priest confirmation needed",
       "serviceErrorTitle": "The Panchang service did not respond",
@@ -384,7 +384,9 @@
       "reference": "Reference",
       "possibleDays": "Possible Shraddha days",
       "ifTithi": "If the Tithi at death was {tithi}",
-      "engineValue": "Astronomy: astronomy-engine · Rules: jyotisha (Aparahna-vyapini)"
+      "engineValue": "Astronomy: astronomy-engine · Rules: jyotisha (Aparahna-vyapini)",
+      "cardTitle": "Shraddha date",
+      "cardTitleNamed": "Shraddha date of {name}"
     },
     "verify": {
       "title": "Priest verification",

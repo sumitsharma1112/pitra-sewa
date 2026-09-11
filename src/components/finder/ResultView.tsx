@@ -117,7 +117,9 @@ export function ResultView({ ref, state, locale, fd, contact, bookHref, onAgain 
 
       <article className="overflow-hidden rounded-2xl border border-line bg-paper shadow-[0_24px_48px_-32px_rgba(74,22,32,0.45)] print:shadow-none">
         <header className="flex flex-wrap items-center justify-between gap-2 bg-maroon px-6 py-4 text-ivory print:border-b print:border-line print:bg-white print:text-maroon">
-          <span className="font-display text-xl">{r.heading}</span>
+          <span className="font-display text-xl">
+            {summary.name ? fill(r.cardTitleNamed, { name: summary.name }) : r.cardTitle}
+          </span>
           <span className="text-sm text-gold-light print:text-muted">
             {r.reference}: {state.reference}
           </span>
