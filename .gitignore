@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# offline reference tooling (scripts/reference/, see PANCHANG_PLAN.md)
+/venv_astro
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

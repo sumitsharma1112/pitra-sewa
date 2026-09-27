@@ -38,7 +38,6 @@ export const upcomingPages = [
   "whatIsShraddha",
   "brahminSewa",
   "sewaOptions",
-  "astrology",
   "faqs",
   "contact",
   "bookSewa",

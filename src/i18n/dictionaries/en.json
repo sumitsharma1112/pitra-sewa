@@ -465,5 +465,98 @@
       "November",
       "December"
     ]
+  },
+  "astrologyPage": {
+    "metaTitle": "Kundli and Varshphal Calculator",
+    "metaDescription": "Find your birth chart (Kundli) and Varshphal (annual chart) planetary positions from your birth date, time and place \u2014 computation only, no predictions.",
+    "heading": "Kundli and Varshphal",
+    "intro": "From your birth date, time and place, we build your birth chart and the Varshphal (annual chart) for the year you choose, using the Lahiri ayanamsha \u2014 the sign, Nakshatra and house of all nine grahas.",
+    "disclaimer": "This page shows computation only \u2014 planetary positions, signs and Nakshatras. No yoga, prediction or forecast is given here. For a meaningful reading on health, marriage, travel or similar topics, please consult a qualified astrologer.",
+    "privacy": "Your information is used only for this calculation and is not stored by us.",
+    "sections": {
+      "birth": "Birth details",
+      "varshphal": "Varshphal"
+    },
+    "fields": {
+      "name": {
+        "label": "Name",
+        "alt": "Name",
+        "hint": "Optional \u2014 shown on the chart only."
+      },
+      "birthDate": {
+        "label": "Date of birth",
+        "alt": "Date of birth",
+        "hint": "Gregorian calendar date"
+      },
+      "birthTime": {
+        "label": "Time of birth",
+        "alt": "Time of birth",
+        "hint": "As exact as possible \u2014 needed for the Ascendant and houses to be meaningful."
+      },
+      "birthPlace": {
+        "label": "Place of birth",
+        "alt": "Place of birth",
+        "hint": "Type the city name and choose from the list."
+      },
+      "varshphalYear": {
+        "label": "Which year's Varshphal?",
+        "alt": "Year for Varshphal",
+        "hint": "The year you want the annual chart for."
+      }
+    },
+    "submit": "Build the chart",
+    "submitting": "Calculating…",
+    "errorsTitle": "Please fix the following:",
+    "errors": {
+      "required": "This information is required.",
+      "invalidDate": "This date isn't valid.",
+      "futureDate": "Date of birth can't be after today.",
+      "tooOld": "This date is outside the 1900–2060 range.",
+      "invalidTime": "Enter the time in the correct format.",
+      "placeRequired": "Choose a city from the list.",
+      "yearRange": "Choose a year between 1900 and 2060.",
+      "tooLong": "This text is too long."
+    },
+    "rateLimited": "Too many requests in a short time. Please try again in a minute.",
+    "outOfRange": "This date can't be calculated \u2014 it's outside the engine's supported range (1900–2060).",
+    "grahas": {
+      "sun": "Sun",
+      "moon": "Moon",
+      "mars": "Mars",
+      "mercury": "Mercury",
+      "jupiter": "Jupiter",
+      "venus": "Venus",
+      "saturn": "Saturn",
+      "rahu": "Rahu",
+      "ketu": "Ketu"
+    },
+    "rashis": [
+      "Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya",
+      "Tula", "Vrischika", "Dhanu", "Makara", "Kumbha", "Meena"
+    ],
+    "nakshatras": [
+      "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha",
+      "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
+      "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"
+    ],
+    "result": {
+      "birthChartTitle": "Birth Chart (Janma Kundli)",
+      "varshphalTitle": "Varshphal {year}",
+      "ascendant": "Ascendant (Lagna)",
+      "columns": {
+        "graha": "Graha",
+        "rashi": "Rashi",
+        "degree": "Degree",
+        "nakshatra": "Nakshatra",
+        "pada": "Pada",
+        "house": "House",
+        "retrograde": "Status"
+      },
+      "retrograde": "Retrograde",
+      "direct": "Direct",
+      "boundaryNote": "A position marked this way is very close to a sign or Nakshatra boundary \u2014 within the calculation's own accuracy margin (about ±1°) \u2014 so please have the sign confirmed by an astrologer.",
+      "again": "Build another chart",
+      "print": "Print / Save as PDF"
+    }
   }
 }
