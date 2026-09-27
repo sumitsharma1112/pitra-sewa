@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { lunarMonthAt, pitruPaksha, pitruPakshaTithiSpan, sunTimes, tithiIndexAt, tithiSpanAt } from "../astro";
+import {
+  currentOrNextPitruPaksha,
+  lunarMonthAt,
+  pitruPaksha,
+  pitruPakshaTithiSpan,
+  sunTimes,
+  tithiIndexAt,
+  tithiSpanAt,
+} from "../astro";
 import type { Place } from "../types";
 
 const delhi: Place = { id: "1273294", name: "Delhi", state: "07", lat: 28.652, lng: 77.231, utcOffsetMinutes: 330 };
@@ -32,5 +40,25 @@ describe("astronomy", () => {
     expect(tithiIndexAt(new Date(pp.fullMoon.getTime() + 60_000))).toBe(16);
     const amavasya = pitruPakshaTithiSpan(pp, 30);
     expect(amavasya.end.toISOString().slice(0, 10)).toBe("2025-09-21");
+  });
+
+  it("picks the current year's Pitru Paksha window while it is still ahead or underway", () => {
+    expect(currentOrNextPitruPaksha(ist("2026-01-01T00:00:00"))).toEqual({
+      year: 2026,
+      start: "2026-09-26",
+      end: "2026-10-10",
+      adhikNearby: false,
+    });
+    // Mid-fortnight: still "this year's" window, not rolled to next year.
+    expect(currentOrNextPitruPaksha(ist("2026-09-27T00:00:00"))?.year).toBe(2026);
+  });
+
+  it("rolls over to next year's Pitru Paksha once this year's has ended", () => {
+    expect(currentOrNextPitruPaksha(ist("2026-10-11T00:00:00"))).toEqual({
+      year: 2027,
+      start: "2027-09-16",
+      end: "2027-09-30",
+      adhikNearby: false,
+    });
   });
 });

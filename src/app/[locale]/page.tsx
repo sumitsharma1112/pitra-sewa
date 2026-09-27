@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DateFinderPreview } from "@/components/home/DateFinderPreview";
 import { HeroSection } from "@/components/home/HeroSection";
+import { PitruPakshaPanel } from "@/components/home/PitruPakshaPanel";
 import { TraditionSection } from "@/components/home/TraditionSection";
 import { WhyShraddhaSection } from "@/components/home/WhyShraddhaSection";
 import { hasLocale, localeMeta, locales } from "@/i18n/config";
@@ -37,6 +38,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   return (
     <>
       <HeroSection locale={locale} dict={dict} />
+      <PitruPakshaPanel locale={locale} dict={dict} />
       <WhyShraddhaSection locale={locale} dict={dict} />
       <TraditionSection dict={dict} />
       <DateFinderPreview locale={locale} dict={dict} />

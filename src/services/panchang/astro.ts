@@ -115,3 +115,27 @@ export function pitruPakshaTithiSpan(pp: ReturnType<typeof pitruPaksha>, index: 
   const end = index === 30 ? pp.amavasya : search(index * 12, start, 3);
   return { start, end };
 }
+
+const IST_REFERENCE: Place = { id: "ist", name: "IST", state: "", lat: 28.6139, lng: 77.209, utcOffsetMinutes: 330 };
+
+/**
+ * The Pitru Paksha window (civil dates, IST) that is current or next relative
+ * to `now` — for a general "this year" display, not a personal Shraddha date.
+ * Falls back to `null` outside the supported 1900–2060 range rather than guess.
+ */
+export function currentOrNextPitruPaksha(
+  now: Date = new Date(),
+): { year: number; start: string; end: string; adhikNearby: boolean } | null {
+  try {
+    let year = now.getUTCFullYear();
+    let pp = pitruPaksha(year);
+    if (now.getTime() > pp.amavasya.getTime()) {
+      year += 1;
+      pp = pitruPaksha(year);
+    }
+    return { year, start: localDate(pp.fullMoon, IST_REFERENCE), end: localDate(pp.amavasya, IST_REFERENCE), adhikNearby: pp.adhikNearby };
+  } catch (e) {
+    if (e instanceof OutOfRangeError) return null;
+    throw e;
+  }
+}

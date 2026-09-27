@@ -47,6 +47,13 @@
     "body": "Discover the meaning of Shraddha, find your loved one’s annual Shraddha Tithi, and arrange Brahmin Sewa with care and respect.",
     "trustNote": "The same tradition, a new way."
   },
+  "pitruPakshaPanel": {
+    "eyebrow": "This year",
+    "heading": "Pitra Paksha {year}",
+    "dateRange": "{start} – {end}",
+    "note": "These dates follow the Amanta calendar (Krishna Paksha of Bhadrapada) and Indian Standard Time; Purnimanta calendars count the same days as Krishna Paksha of Ashwin. Use the Date Finder for your family's exact Shraddha date, confirmed with a priest.",
+    "adhikNote": "An Adhik Maas falls close to this year's calculation; please confirm the date with your Acharya."
+  },
   "why": {
     "heading": "Why Shraddha Matters",
     "intro": "Shraddha is the tradition of remembering departed loved ones and ancestors with respect. It is an occasion for remembrance and gratitude, not for fear or grief.",
