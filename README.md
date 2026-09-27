@@ -12,8 +12,11 @@ one's Shraddha Tithi, and request Brahmin Sewa.
 | 1 | Structure, design system, homepage, navigation, footer, Hindi/English | **Done** |
 | 2 | Date Finder UI, validation, result + print layout | **Done** |
 | 3 | Panchang engine, conventions, fixtures, priest verification | **Done** — in-process engine, checked against jyotisha (`docs/PANCHANG_PLAN.md`) |
-| 4 | Sewa pages, booking, database, admin | Planned — see `docs/DATABASE.md` |
-| 5 | SEO (sitemap, structured data), legal pages, hardening, deployment | Planned |
+| 4 | Sewa pages, booking, database, admin | Next — see `docs/ROADMAP.md` |
+| 5 | SEO (sitemap, structured data), legal pages, hardening, deployment | Planned — see `docs/ROADMAP.md` |
+
+Working on this project with Claude Code? Start with `CLAUDE.md` (rules, conventions,
+commands) and `docs/ROADMAP.md` (what is done, what is next, open decisions).
 
 Pages not built yet show a clear "being prepared" page instead of a broken link.
 The Date Finder calculates in-process (no API key). Uncertain cases are marked
