@@ -28,6 +28,23 @@
  * Pitru Paksha engine's sankranti table) for varied dates, times and
  * latitudes: every planet and the ascendant agree within about 16
  * arcseconds, inside astronomy-engine's documented ±1' accuracy.
+ *
+ * Also computed, as fixed classical rules rather than interpretation:
+ * - Naisargika Maitri (natural planetary friendship): the standard 7x7
+ *   friend/neutral/enemy table for the 7 classical grahas (see Brihat
+ *   Parashara Hora Shastra; identical across every mainstream Jyotish
+ *   reference, including its well-known asymmetries, e.g. Moon regards
+ *   Mercury as a friend but Mercury regards Moon as an enemy). Shown here
+ *   as each graha's relation to the Lagna lord -- a fixed rule applied to
+ *   this chart's own Ascendant, not a prediction.
+ * - Graha drishti (aspects): the standard Parashari rule -- every graha
+ *   aspects the 7th house from itself; Mars also aspects the 4th and 8th;
+ *   Jupiter the 5th and 9th; Saturn the 3rd and 10th. Rahu/Ketu are given
+ *   only the universal 7th-house aspect here, since the extra aspects
+ *   some modern software assigns them are not classically universal.
+ * These are deterministic geometry and a fixed lookup table -- not
+ * "fal" (results/interpretation), which this module still does not
+ * generate; see the disclaimer on the astrology page itself.
  */
 import * as A from "astronomy-engine";
 import ayanamshaTable from "@/data/ayanamsha-lahiri.json";
@@ -107,6 +124,47 @@ export const NAKSHATRAS = [
   "revati",
 ] as const;
 export type Nakshatra = (typeof NAKSHATRAS)[number];
+
+/** Which graha rules each rashi (classical Vedic rulerships). */
+export const RASHI_LORD: Record<Rashi, Graha> = {
+  mesha: "mars",
+  vrishabha: "venus",
+  mithuna: "mercury",
+  karka: "moon",
+  simha: "sun",
+  kanya: "mercury",
+  tula: "venus",
+  vrischika: "mars",
+  dhanu: "jupiter",
+  makara: "saturn",
+  kumbha: "saturn",
+  meena: "jupiter",
+};
+
+export type Relation = "self" | "friend" | "neutral" | "enemy";
+
+/** Naisargika Maitri: the classical 7x7 natural-friendship table (see module doc comment). Not defined for Rahu/Ketu. */
+const NATURAL_FRIENDSHIP: Partial<Record<Graha, Partial<Record<Graha, Relation>>>> = {
+  sun: { moon: "friend", mars: "friend", jupiter: "friend", mercury: "neutral", venus: "enemy", saturn: "enemy" },
+  moon: { sun: "friend", mercury: "friend", mars: "neutral", jupiter: "neutral", venus: "neutral", saturn: "neutral" },
+  mars: { sun: "friend", moon: "friend", jupiter: "friend", venus: "neutral", saturn: "neutral", mercury: "enemy" },
+  mercury: { sun: "friend", venus: "friend", mars: "neutral", jupiter: "neutral", saturn: "neutral", moon: "enemy" },
+  jupiter: { sun: "friend", moon: "friend", mars: "friend", saturn: "neutral", mercury: "enemy", venus: "enemy" },
+  venus: { mercury: "friend", saturn: "friend", mars: "neutral", jupiter: "neutral", sun: "enemy", moon: "enemy" },
+  saturn: { mercury: "friend", venus: "friend", jupiter: "neutral", sun: "enemy", moon: "enemy", mars: "enemy" },
+};
+
+/** `a`'s natural relation to `b` (fixed classical table; not chart-specific). Undefined when either is Rahu/Ketu. */
+export function naturalRelation(a: Graha, b: Graha): Relation | undefined {
+  if (a === b) return "self";
+  return NATURAL_FRIENDSHIP[a]?.[b];
+}
+
+/** Houses (1-12, relative offsets) a graha in `houseOfGraha` aspects, by the standard Parashari rule. */
+export function aspectedHouses(graha: Graha, houseOfGraha: number): number[] {
+  const offsets = graha === "mars" ? [4, 7, 8] : graha === "jupiter" ? [5, 7, 9] : graha === "saturn" ? [3, 7, 10] : [7];
+  return offsets.map((o) => (((houseOfGraha - 1 + (o - 1)) % 12) + 12) % 12).map((i) => i + 1);
+}
 
 const bodyOf: Partial<Record<Graha, A.Body>> = {
   mars: A.Body.Mars,
@@ -198,22 +256,29 @@ export interface GrahaPosition {
   house: number; // 1-12, whole-sign from Lagna
   retrograde: boolean;
   nearBoundary: boolean;
+  /** This graha's fixed natural relation to the chart's Lagna lord. Undefined for Rahu/Ketu (not classically defined). */
+  relationToLagnaLord?: Relation;
+  /** Other grahas in this chart that this position aspects (graha drishti; see module doc comment). */
+  aspects: Graha[];
 }
 
 export interface Chart {
   instant: Date;
   ayanamsha: number;
-  ascendant: { siderealLongitude: number; rashi: Rashi; degreeInRashi: number; nearBoundary: boolean };
+  ascendant: { siderealLongitude: number; rashi: Rashi; degreeInRashi: number; nearBoundary: boolean; lord: Graha };
   positions: GrahaPosition[];
 }
 
 function buildChart(date: Date, place: Place): Chart {
   const ascLon = ascendantSidereal(date, place);
   const lagna = rashiOf(ascLon);
-  const positions = GRAHAS.map((graha) => {
+  const lagnaLord = RASHI_LORD[lagna.rashi];
+
+  const basics = GRAHAS.map((graha) => {
     const lon = siderealLongitudeOf(graha, date);
     const r = rashiOf(lon);
     const n = nakshatraOf(lon);
+    const house = ((r.index - lagna.index + 12) % 12) + 1;
     return {
       graha,
       siderealLongitude: lon,
@@ -221,11 +286,20 @@ function buildChart(date: Date, place: Place): Chart {
       degreeInRashi: r.degreeInRashi,
       nakshatra: n.nakshatra,
       pada: n.pada,
-      house: ((r.index - lagna.index + 12) % 12) + 1,
+      house,
       retrograde: isRetrograde(graha, date),
       nearBoundary: nearCusp(r.degreeInRashi, 30) || nearCusp(((lon % (360 / 27)) + 360 / 27) % (360 / 27), 360 / 27),
+      relationToLagnaLord: naturalRelation(graha, lagnaLord),
     };
   });
+
+  const positions: GrahaPosition[] = basics.map((p) => ({
+    ...p,
+    aspects: aspectedHouses(p.graha, p.house)
+      .flatMap((h) => basics.filter((other) => other.house === h && other.graha !== p.graha))
+      .map((other) => other.graha),
+  }));
+
   return {
     instant: date,
     ayanamsha: ayanamsha(date),
@@ -234,6 +308,7 @@ function buildChart(date: Date, place: Place): Chart {
       rashi: lagna.rashi,
       degreeInRashi: lagna.degreeInRashi,
       nearBoundary: nearCusp(lagna.degreeInRashi, 30),
+      lord: lagnaLord,
     },
     positions,
   };

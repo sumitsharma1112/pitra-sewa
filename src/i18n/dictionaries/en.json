@@ -543,6 +543,7 @@
       "birthChartTitle": "Birth Chart (Janma Kundli)",
       "varshphalTitle": "Varshphal {year}",
       "ascendant": "Ascendant (Lagna)",
+      "lordSuffix": " · Lord: {lord}",
       "columns": {
         "graha": "Graha",
         "rashi": "Rashi",
@@ -550,13 +551,25 @@
         "nakshatra": "Nakshatra",
         "pada": "Pada",
         "house": "House",
-        "retrograde": "Status"
+        "retrograde": "Status",
+        "relation": "Relation to Lagna Lord",
+        "aspects": "Aspects (Drishti)"
       },
+      "relations": {
+        "self": "Self",
+        "friend": "Friend",
+        "neutral": "Neutral",
+        "enemy": "Enemy"
+      },
+      "noAspect": "—",
       "retrograde": "Retrograde",
       "direct": "Direct",
       "boundaryNote": "A position marked this way is very close to a sign or Nakshatra boundary \u2014 within the calculation's own accuracy margin (about ±1°) \u2014 so please have the sign confirmed by an astrologer.",
+      "relationNote": "Relation to the Lagna lord and Drishti (aspects) are both fixed classical rules (Naisargika Maitri and Parashari aspects) applied to this chart — not an assessment of any graha's results.",
       "again": "Build another chart",
-      "print": "Print / Save as PDF"
+      "print": "Print / Save as PDF",
+      "askAi": "Ask an AI for a general reading",
+      "askAiPrompt": "Here is my computed Varshphal chart (Ascendant: {ascendant}):\n\n{rows}\n\nBased on this, please give me a general astrological reading. Please don't claim to be citing any specific text — just general principles."
     }
   }
 }

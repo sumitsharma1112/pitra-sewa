@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { birthChart, varshphalChart } from "../kundli";
+import { aspectedHouses, birthChart, naturalRelation, RASHI_LORD, varshphalChart } from "../kundli";
 import type { Place } from "../types";
 
 const delhi: Place = { id: "delhi", name: "Delhi", state: "07", lat: 28.6139, lng: 77.209, utcOffsetMinutes: 330 };
@@ -80,5 +80,64 @@ describe("kundli: Varshphal (sidereal solar return)", () => {
   it("rolls the instant forward to the requested year even from a birth-year anchor", () => {
     const chart = varshphalChart(ist(1990, 5, 15, 14, 30), delhi, 2026);
     expect(chart.instant.getUTCFullYear()).toBe(2026);
+  });
+});
+
+describe("kundli: Naisargika Maitri (natural planetary friendship)", () => {
+  it("matches the classical 7x7 table, including its well-known asymmetries", () => {
+    expect(naturalRelation("sun", "moon")).toBe("friend");
+    expect(naturalRelation("sun", "venus")).toBe("enemy");
+    expect(naturalRelation("sun", "sun")).toBe("self");
+    // The Moon considers Mercury a friend, but Mercury considers the Moon an enemy.
+    expect(naturalRelation("moon", "mercury")).toBe("friend");
+    expect(naturalRelation("mercury", "moon")).toBe("enemy");
+    expect(naturalRelation("jupiter", "venus")).toBe("enemy");
+    expect(naturalRelation("venus", "saturn")).toBe("friend");
+  });
+
+  it("is undefined for Rahu/Ketu (not classically defined)", () => {
+    expect(naturalRelation("rahu", "sun")).toBeUndefined();
+    expect(naturalRelation("sun", "ketu")).toBeUndefined();
+  });
+});
+
+describe("kundli: rashi lordship", () => {
+  it("matches classical Vedic rulerships", () => {
+    expect(RASHI_LORD.mesha).toBe("mars");
+    expect(RASHI_LORD.karka).toBe("moon");
+    expect(RASHI_LORD.simha).toBe("sun");
+    expect(RASHI_LORD.tula).toBe("venus");
+    expect(RASHI_LORD.makara).toBe("saturn");
+    expect(RASHI_LORD.meena).toBe("jupiter");
+  });
+});
+
+describe("kundli: graha drishti (aspects)", () => {
+  it("gives every graha a 7th-house aspect, from house 1", () => {
+    expect(aspectedHouses("sun", 1)).toEqual([7]);
+    expect(aspectedHouses("moon", 1)).toEqual([7]);
+    expect(aspectedHouses("rahu", 1)).toEqual([7]);
+  });
+
+  it("gives Mars, Jupiter and Saturn their extra classical aspects, from house 1", () => {
+    expect(aspectedHouses("mars", 1)).toEqual([4, 7, 8]);
+    expect(aspectedHouses("jupiter", 1)).toEqual([5, 7, 9]);
+    expect(aspectedHouses("saturn", 1)).toEqual([3, 7, 10]);
+  });
+
+  it("wraps around the 12 houses correctly from a non-first house", () => {
+    expect(aspectedHouses("saturn", 5)).toEqual([7, 11, 2]);
+    expect(aspectedHouses("sun", 9)).toEqual([3]);
+  });
+});
+
+describe("kundli: Lagna lord and each graha's relation to it", () => {
+  it("Delhi 1990 chart: Kanya Lagna, lord Mercury, Sun neutral to it", () => {
+    const chart = birthChart(ist(1990, 5, 15, 14, 30), delhi);
+    expect(chart.ascendant.rashi).toBe("kanya");
+    expect(chart.ascendant.lord).toBe("mercury");
+    const sun = chart.positions.find((x) => x.graha === "sun")!;
+    expect(sun.relationToLagnaLord).toBe(naturalRelation("sun", "mercury"));
+    expect(sun.relationToLagnaLord).toBe("neutral");
   });
 });
