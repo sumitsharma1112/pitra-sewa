@@ -8,6 +8,7 @@ export const routes = {
   whatIsShraddha: "/what-is-shraddha",
   brahminSewa: "/brahmin-sewa",
   sewaOptions: "/sewa-options",
+  astrology: "/astrology",
   faqs: "/faqs",
   contact: "/contact",
   bookSewa: "/book-sewa",
@@ -25,6 +26,7 @@ export const mainNav = [
   "whatIsShraddha",
   "brahminSewa",
   "sewaOptions",
+  "astrology",
   "faqs",
   "contact",
 ] as const satisfies readonly RouteKey[];
@@ -36,6 +38,7 @@ export const upcomingPages = [
   "whatIsShraddha",
   "brahminSewa",
   "sewaOptions",
+  "astrology",
   "faqs",
   "contact",
   "bookSewa",

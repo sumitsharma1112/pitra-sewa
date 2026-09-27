@@ -26,6 +26,7 @@
     "whatIsShraddha": "What is Shraddha?",
     "brahminSewa": "Brahmin Sewa",
     "sewaOptions": "Sewa Options",
+    "astrology": "Astrology",
     "faqs": "FAQs",
     "contact": "Contact",
     "bookSewa": "Book Sewa",
@@ -197,6 +198,10 @@
       "sewaOptions": {
         "title": "Sewa Options",
         "summary": "Brahmin Bhojan, Brahmin Sewa, Temple Sewa and Custom Sewa."
+      },
+      "astrology": {
+        "title": "Astrology",
+        "summary": "Kundli making, Varshphal and other astrology services, coming soon."
       },
       "faqs": {
         "title": "FAQs",
